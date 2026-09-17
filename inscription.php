@@ -1,5 +1,28 @@
 <?php
 require_once 'templates/header.php';
+require_once 'libs/pdo.php';
+require_once 'libs/user.php';
+
+/*
+if (isset($_POST["username"]) && isset($_POST["email"]) && isset($_POST["password"])) {
+    $res = addUser($pdo, $_POST["username"], $_POST["email"], $_POST["password"]);
+}
+*/
+//addUser($pdo, "test", "test@test.fr", "abc123");
+
+
+$errors = [];
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    $verif = verifyUser($_POST);
+    if ($verif === true) {
+        $resAdd = addUser($pdo, $_POST["username"], $_POST["email"], $_POST["password"]);
+    } else {
+        $errors = $verif;
+    }
+}
+
+
+
 ?>
 
 <div class="form-signin w-100 m-auto"></div>
@@ -15,9 +38,9 @@ require_once 'templates/header.php';
     </div>
     <div class="mb-3">
         <label class="form-label" for="password">Mot de passe</label>
-        <input class="form-control" type="text" name="password" id="password">
+        <input class="form-control" type="password" name="password" id="password">
     </div>
-    <input class="btn btn-primary" type="submit" value="Enregistrer">
+    <input class="btn btn-primary" type="submit" value="Enregistrer" name="add_user">
 </form>
 
 
