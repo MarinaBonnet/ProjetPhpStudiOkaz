@@ -1,16 +1,55 @@
 <?php
 
-function getListings(): array
+function getListings(PDO $pdo, array $filters = []): array
 {
-    return  [
-        ["title" => "test1", "price" => 30, "image" => "rocket-league.jpg", "description" => "Description du produit"],
-        ["title" => "test2", "price" => 20, "image" => "rocket-league.jpg", "description" => "Description du produit"],
-        ["title" => "test3", "price" => 10, "image" => "rocket-league.jpg", "description" => "Description du produit"]
-    ];
+    $orderBy = "listing.id DESC";
+    $relevance = "";
+    $conditions = [];
+    if (isset($filters["search"])) {
+        //$conditions[] = "title LIKE :search OR description LIKE :search"; moins performant
+        $match = "MATCH(title) AGAINST(:search)";
+        $conditions[] = $match;
+        $relevance = ", $match as relevance";
+        $orderBy = "relevance DESC";
+    }
+    if (isset($filters["min_price"])) {
+        $conditions[] = "price <= :min_price";
+    }
+    if (isset($filters["max_price"])) {
+        $conditions[] = "price <= :max_price";
+    }
+    $where = $conditions ? " WHERE " . implode(" AND ", $conditions) : "";
+
+    $sql = "SELECT listing.id, listing.title, listing.image, listing.description, listing.price
+            $relevance
+            FROM listing
+            $where";
+
+    $query = $pdo->prepare($sql);
+    if (isset($filters["search"])) {
+        $query->bindValue(":search", "%{$filters["search"]}%");
+    }
+    if (isset($filters["min_price"])) {
+        $query->bindValue(":min_price", $filters["min_price"]);
+    }
+    if (isset($filters["max_price"])) {
+        $query->bindValue(":max_price", $filters["max_price"]);
+    }
+    if (isset($filters["category"])) {
+        $query->bindValue(":category", $filters["category"], PDO::PARAM_INT);
+    }
+    $query->execute();
+    return $query->fetchall(PDO::FETCH_ASSOC);
 }
 
-function getListingById(int $id): array
+function getListingById(PDO $pdo, int $id): array|bool
 {
-    $listings = getListings();
-    return $listings[$id];
+    $sql = "SELECT listing.id, listing.title, listing.image, listing.description, listing.price
+            FROM listing
+            WHERE listing.id = :id";
+
+    $query = $pdo->prepare($sql);
+    $query->bindValue(":id", $id, PDO::PARAM_INT);
+    $query->execute();
+    return $query->fetch(PDO::FETCH_ASSOC);
 }

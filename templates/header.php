@@ -1,3 +1,7 @@
+<?php
+session_start();
+?>
+
 <!DOCTYPE html>
 <html lang="fr">
 
@@ -25,8 +29,13 @@
 
             </ul>
             <div class="col-md-3 text-end">
-                <a href="login.php" type="button" class="btn btn-outline-primary me-2">Connexion</a>
-                <a href="inscription.php" type="button" class="btn btn-primary">Inscription</a>
+                <?php if (isset($_SESSION["user"])): ?>
+                    <span>Bonjour <?= $_SESSION["user"]["username"] ?></span>
+                    <a href="logout.php" class="btn btn-primary">Déconnexion</a>
+                <?php else: ?>
+                    <a href="login.php" type="button" class="btn btn-outline-primary me-2">Connexion</a>
+                    <a href="inscription.php" type="button" class="btn btn-primary">Inscription</a>
+                <?php endif; ?>
             </div>
         </header>
         <main>
